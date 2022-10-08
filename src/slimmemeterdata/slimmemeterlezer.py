@@ -25,7 +25,7 @@ class SlimmeMeterLezer:
     def run(self) -> str:
         """Main function"""
         options = webdriver.ChromeOptions()
-        options.headless = True
+        options.headless = False
         options.add_argument("window-size=1920x1080")
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-gpu')
