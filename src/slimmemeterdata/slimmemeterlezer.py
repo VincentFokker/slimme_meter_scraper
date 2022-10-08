@@ -33,6 +33,7 @@ class SlimmeMeterLezer:
         if platform.system() == 'Windows':
             browser = webdriver.Chrome(options=options)
         elif platform.system() == 'Linux':
+            print("Starting virtual display..")
             from pyvirtualdisplay import Display
             display = Display(visible=False, size=(800, 600))
             display.start()
@@ -53,6 +54,7 @@ class SlimmeMeterLezer:
 
     def _download_data(self, browser_session: webdriver.Chrome, comodity: Enum) -> None:
         """Download the kw data."""
+        print(f"Downloading data for the {comodity.value} comodity.")
         browser_session.get(
             f'{self.base_url}/cust/consumption/chart.xls?commodity={comodity.value}&contract_id={self.contract_id}'
             f'&contracts%5B%5D={self.contract_id}&datatype=consumption&range={self.time_range}&timeslot_start={self.timeslot_start}')
@@ -60,6 +62,7 @@ class SlimmeMeterLezer:
 
     def _login(self, browser_session: webdriver.Chrome) -> None:
         """Main function."""
+        print("Logging into browser..")
         browser_session.get("https://slimmemeterportal.nl/login")
 
         # find login fields
