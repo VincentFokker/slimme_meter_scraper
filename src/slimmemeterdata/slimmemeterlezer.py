@@ -25,13 +25,15 @@ class SlimmeMeterLezer:
     def run(self) -> str:
         """Main function"""
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         options.add_argument("window-size=1920x1080")
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-gpu')
 
         if platform.system() == 'Windows':
             browser = webdriver.Chrome(options=options)
+            params = {'cmd': 'Page.setDownloadBehavior',
+                      'params': {'behavior': 'allow', 'downloadPath': str(os.path.dirname(os.path.abspath(__file__)))}}
         elif platform.system() == 'Linux':
             print("Starting virtual display..")
             from pyvirtualdisplay import Display
@@ -39,9 +41,16 @@ class SlimmeMeterLezer:
             display.start()
             prefs = {"download.default_directory": "/home/homeassistant/"}
             options.add_experimental_option('prefs', prefs)
+            params = {'cmd': 'Page.setDownloadBehavior',
+                      'params': {'behavior': 'allow', 'downloadPath': "/home/homeassistant/"}}
             browser = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver', options=options)
         else:
             raise NotImplementedError
+
+        # Add command to download with headless feature
+        browser.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+        command_result = browser.execute("send_command", params)
+        print(command_result)
 
         # Login
         self._login(browser_session=browser)
@@ -53,14 +62,6 @@ class SlimmeMeterLezer:
         self._download_data(browser_session=browser, comodity=Comodities.GAS)
 
         return "Downloaded file"
-
-    def _download_data(self, browser_session: webdriver.Chrome, comodity: Enum) -> None:
-        """Download the kw data."""
-        print(f"Downloading data for the {comodity.value} comodity.")
-        browser_session.get(
-            f'{self.base_url}/cust/consumption/chart.xls?commodity={comodity.value}&contract_id={self.contract_id}'
-            f'&contracts%5B%5D={self.contract_id}&datatype=consumption&range={self.time_range}&timeslot_start={self.timeslot_start}')
-        time.sleep(1)
 
     def _login(self, browser_session: webdriver.Chrome) -> None:
         """Main function."""
@@ -78,4 +79,22 @@ class SlimmeMeterLezer:
 
         # Login
         browser_session.find_element(by=By.NAME, value='commit').click()
+        time.sleep(1)
+
+    def _download_data2(self, browser_session: webdriver.Chrome, comodity: Enum) -> None:
+        """Download the kw data."""
+        print(f"Downloading data for the {comodity.value} comodity.")
+        browser_session.get(
+            f'{self.base_url}/cust/consumption?contract_id={self.contract_id}'
+            f'&contracts%5B%5D={self.contract_id}&datatype=consumption&meter_type=point_of_connection&range={self.time_range}&timeslot_start={self.timeslot_start}&zoom_from=86400')
+        items = browser_session.find_elements(by=By.CLASS_NAME, value="xls_icon")
+        for item in items:
+            item.click()
+
+    def _download_data(self, browser_session: webdriver.Chrome, comodity: Enum) -> None:
+        """Download the kw data."""
+        print(f"Downloading data for the {comodity.value} comodity.")
+        browser_session.get(
+            f'{self.base_url}/cust/consumption/chart.xls?commodity={comodity.value}&contract_id={self.contract_id}'
+            f'&contracts%5B%5D={self.contract_id}&datatype=consumption&range={self.time_range}&timeslot_start={self.timeslot_start}')
         time.sleep(1)
