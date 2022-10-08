@@ -37,7 +37,9 @@ class SlimmeMeterLezer:
             from pyvirtualdisplay import Display
             display = Display(visible=False, size=(800, 600))
             display.start()
-            browser = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver')
+            prefs = {"download.default_directory": "/home/homeassistant/"}
+            options.add_experimental_option('prefs', prefs)
+            browser = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver', options=options)
         else:
             raise NotImplementedError
 
