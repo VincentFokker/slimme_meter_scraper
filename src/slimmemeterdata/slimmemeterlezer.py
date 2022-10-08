@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from datetime import datetime, date, timedelta
 from src.slimmemeterdata.comodities import Comodities
 from enum import Enum
+import platform
 
 load_dotenv(find_dotenv())
 
@@ -28,7 +29,16 @@ class SlimmeMeterLezer:
         options.add_argument("window-size=1920x1080")
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-gpu')
-        browser = webdriver.Chrome(options=options)
+
+        if platform.system() == 'Windows':
+            browser = webdriver.Chrome(options=options)
+        elif platform.system() == 'Linux':
+            from pyvirtualdisplay import Display
+            display = Display(visible=False, size=(800, 600))
+            display.start()
+            browser = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver')
+        else:
+            raise NotImplementedError
 
         # Login
         self._login(browser_session=browser)
